@@ -27,4 +27,4 @@ jobs:
 
       # Runs a single command using the runners shell
       - name: Run the tests
-        run: ./gradlew test
+        run: codex-auth/gradlew test

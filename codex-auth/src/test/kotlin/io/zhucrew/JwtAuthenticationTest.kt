@@ -2,26 +2,32 @@ package io.zhucrew
 
 import com.nimbusds.jwt.JWTParser
 import com.nimbusds.jwt.SignedJWT
+import io.kotest.core.spec.style.StringSpec
+import io.micronaut.context.ApplicationContext
 import io.micronaut.http.HttpRequest
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.HttpStatus
 import io.micronaut.http.MediaType
-import io.micronaut.http.client.HttpClient
-import io.micronaut.http.client.annotation.Client
+import io.micronaut.http.client.RxHttpClient
 import io.micronaut.http.client.exceptions.HttpClientResponseException
+import io.micronaut.runtime.EmbeddedApplication
+import io.micronaut.runtime.server.EmbeddedServer
 import io.micronaut.security.authentication.UsernamePasswordCredentials
 import io.micronaut.security.token.jwt.render.BearerAccessRefreshToken
 import io.micronaut.test.extensions.kotest.annotation.MicronautTest
 import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.function.Executable
-import javax.inject.Inject
 
 @MicronautTest
 class JwtAuthenticationTest(private val application: EmbeddedApplication<*>): StringSpec({
-    @Inject
-    @field:Client("/")
-    lateinit var client : HttpClient
+
+    val embeddedServer = autoClose(
+        ApplicationContext.run(EmbeddedServer::class.java, mapOf())
+    )
+
+    val client = autoClose(
+        application.applicationContext.createBean(RxHttpClient::class.java, embeddedServer.getURL())
+    )
 
     "accessingASecuredUrlWithoutAuthenticatingReturnsUnauthorized" {
         val e = Executable { client.toBlocking().exchange<Any, Any>(HttpRequest.GET<Any>("/").accept(MediaType.TEXT_PLAIN)) }
@@ -46,9 +52,5 @@ class JwtAuthenticationTest(private val application: EmbeddedApplication<*>): St
 
         assertEquals(HttpStatus.OK, rsp.status)
         assertEquals("sherlock", response.body()!!)
-    }
-
-    "itFails" {
-        assertEquals(true, false)
     }
 })

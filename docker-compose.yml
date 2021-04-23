@@ -1,0 +1,16 @@
+version: '3'
+services:
+  postgres:
+    image: postgres
+    restart: always
+    environment:
+      - "APP_DB_USER=codex_auth_user"
+      - "APP_DB_PASSWORD=todo_changeme_auth"
+      - "APP_DB_DATABASE=codex_auth"
+      - "POSTGRES_PASSWORD=todo_change_me"
+    ports:
+      - 5432:5432
+    volumes:
+      - ./docker/provision/postgres/init:/docker-entrypoint-initdb.d
+
+
